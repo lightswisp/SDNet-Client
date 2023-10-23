@@ -2,7 +2,7 @@
 
 echo "Installation script is starting..."
 
-sudo apt update && sudo apt upgrade -y
+sudo apt update
 
 sudo apt install -y git build-essential libgtk-3-0 libwebkit2gtk-4.0-37
 
