@@ -2,8 +2,9 @@
 
 echo "Installation script is starting..."
 
+sudo apt install -y git build-essential libgtk-3-0 libwebkit2gtk-4.0-37
+
 curl -fsSL https://crystal-lang.org/install.sh | sudo bash
-sudo apt install -y curl git build-essential libgtk-3-0 libwebkit2gtk-4.0-37
 
 git clone https://github.com/lightswisp/SDNet-Client.git sdnet-client
 
