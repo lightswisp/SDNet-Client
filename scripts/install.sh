@@ -4,7 +4,7 @@ echo "Installation script is starting..."
 
 sudo apt update
 
-sudo apt install -y git build-essential libgtk-3-0 libwebkit2gtk-4.0-37
+sudo apt install -y git build-essential libgtk-3-dev libwebkit2gtk-4.0-dev
 
 curl -fsSL https://crystal-lang.org/install.sh | sudo bash
 
