@@ -1,0 +1,22 @@
+name: web
+version: 0.1.0
+
+dependencies:
+  webview:
+    github: naqvis/webview
+# authors:
+#   - name <email@example.com>
+
+# description: |
+#   Short description of web
+
+# dependencies:
+#   pg:
+#     github: will/crystal-pg
+#     version: "~> 0.5"
+
+# development_dependencies:
+#   webmock:
+#     github: manastech/webmock.cr
+
+# license: MIT

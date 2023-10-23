@@ -1,0 +1,1 @@
+crystal build --release --no-debug -o client --link-flags webview main.cr --static 
