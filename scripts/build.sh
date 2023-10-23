@@ -1,1 +1,1 @@
-crystal build --release main.cr
+crystal build --release ../main.cr -o sdnet
