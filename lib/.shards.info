@@ -1,6 +1,0 @@
----
-version: 1.0
-shards:
-  webview:
-    git: https://github.com/naqvis/webview.git
-    version: 0.2.3
