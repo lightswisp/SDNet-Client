@@ -1,2 +1,4 @@
 client.exe
-sdnet.exe
+sdnet*
+lib
+lib/*
