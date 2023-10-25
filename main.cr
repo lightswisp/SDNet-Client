@@ -9,6 +9,7 @@ MAX_BUFFER = 1024
 LOCAL_PORT = 8080
 OPTIONS = {:cli => false} of Symbol => String | Bool
 
+
 OptionParser.parse do |parser|
     parser.banner = "Usage: client [arguments]"
     parser.on("-c", "--cli", "CLI Interface, the default is GUI") { OPTIONS[:cli] = true }
@@ -85,9 +86,9 @@ def gui_main()
 
             unless ip.empty? || port.empty? || sni.empty?
                 {% if flag?(:win32) %}
-                    process = Process.new("sdnet.exe", ["--cli", "-a", ip, "-p", port, "-s", sni])
+                    process = Process.new(Process.executable_path.not_nil!, ["--cli", "-a", ip, "-p", port, "-s", sni])
                 {% elsif flag?(:linux) %}
-                    process = Process.new("sdnet", ["--cli", "-a", ip, "-p", port, "-s", sni])
+                    process = Process.new(Process.executable_path.not_nil!, ["--cli", "-a", ip, "-p", port, "-s", sni])
                 {% end %}
                 ret = {"message" => "Listening on 8080"}.to_json
             end
