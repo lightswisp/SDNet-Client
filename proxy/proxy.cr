@@ -7,15 +7,12 @@ class LocalProxy
     @temp_server : Hash(String, String)
 
     def initialize(port : Int32, layer_2_nodes_list : Array(Hash(String, String)), max_buffer : Int32)
-        #GC.disable
         @port = port
         @layer_2_nodes_list = layer_2_nodes_list
         @max_buffer = max_buffer
-
         @proxy = TCPServer.new("0.0.0.0", @port)
         puts "Listening on #{@port}"
         @temp_server = @layer_2_nodes_list.sample
-
     end
 
     def is_alive(ssl, request)
@@ -24,13 +21,14 @@ class LocalProxy
         ssl.puts(request)
         begin         
             read_bytes = ssl.read(ptr.to_slice(@max_buffer))
-            response = String.new ptr.to_slice(@max_buffer)[0...read_bytes]
+            response = String.new ptr.to_slice(read_bytes)
             p "IS_ALIVE #{response}"
         rescue
             return nil
         ensure
             p "free() -> #{ptr}"
             LibC.free(ptr)
+            GC.collect()
         end
         return response
     end
@@ -42,7 +40,7 @@ class LocalProxy
     def handle_client(client)
     
         begin
-                temp_data = client.receive(@max_buffer).to_a[0].as(String)
+                temp_data, client_addr = client.receive(@max_buffer) # .as(String)
                 return if temp_data.nil? || temp_data.empty?
                 temp_data_lines = temp_data.split("\r\n")
                 temp_data_first_line = temp_data_lines[0].split(" ")
@@ -76,25 +74,20 @@ class LocalProxy
                             
                             read_bytes = client.read(ptr.to_slice(@max_buffer))
                             if read_bytes == 0
-                                # puts "No more bytes!"
-                                # LibC.free(ptr)
-                                # puts "CONNECT CLIENT free() -> #{ptr}"
                                 # no more bytes from the client
                                 break 
                             end
-                            ssl.not_nil!.write(ptr.to_slice(@max_buffer)[0...read_bytes])
-                            # LibC.free(ptr)
+                            ssl.not_nil!.write(ptr.to_slice(read_bytes))
                             end
 
                         rescue IO::Error
                             # client has closed the connection
-                            puts "client has closed the connection"
                             next
                         ensure
-                            p "ensure CLIENT"
-                            ssl.not_nil!.close # d
+                            ssl.not_nil!.close 
                             client.close
                             LibC.free(ptr)
+                            GC.collect()
                         end
                     end
     
@@ -107,30 +100,23 @@ class LocalProxy
                                 
                                 read_bytes = ssl.not_nil!.read(ptr.to_slice(@max_buffer))
                                 if read_bytes == 0
-                                    # puts "No more bytes!"
-                                    # LibC.free(ptr)
-                                    # puts "CONNECT REMOTE free() -> #{ptr}"
                                     # no more bytes from the remote host
                                     break 
                                 end
-                                client.write(ptr.to_slice(@max_buffer)[0...read_bytes])
-                                #LibC.free(ptr)
+                                client.write(ptr.to_slice(read_bytes))
                             end
 
                         rescue IO::Error
-                            puts "remote has closed the connection"
                             # remote has closed the connection
                             next
                         ensure
-                            p "ensure REMOTE"
-                            ssl.not_nil!.close # d
+                            ssl.not_nil!.close 
                             client.close
                             LibC.free(ptr)
-                            # LibC.free(ptr)
+                            GC.collect()
                         end
                     end
                     
-                    #sleep
                     Fiber.yield # force the main fiber to sleep in order to switch to other 2 fibers above
     
                     
@@ -144,7 +130,7 @@ class LocalProxy
                     
                     ssl.not_nil!.puts(temp_data)
 
-                    ptr = LibC.malloc(@max_buffer * 640).as(Pointer(UInt8))
+                    ptr = LibC.malloc(@max_buffer).as(Pointer(UInt8))
 
                     loop do 
                         read_bytes = ssl.not_nil!.read(ptr.to_slice(@max_buffer))
@@ -152,19 +138,21 @@ class LocalProxy
                             # no more bytes from the remote host
                             break 
                         end                                   
-                        client.write(ptr.to_slice(@max_buffer)[0...read_bytes])
+                        client.write(ptr.to_slice(read_bytes))
                     end
 
                     p "NON CONNECT free() -> #{ptr}"
-                    LibC.free(ptr)
-                    ssl.not_nil!.close           # d
-                    client.close        # d
-
+                    ssl.not_nil!.close      
+                    client.close  
+                  	LibC.free(ptr)
+                    GC.collect()
                 end
                 
 
         rescue IO::Error
-            puts "err"
+            client.close
+            GC.collect()
+            return
         end
     
     end
